@@ -1,111 +1,128 @@
 const container = document.querySelector('.container');
 const resultado = document.querySelector('#resultado');
-
 const formulario = document.querySelector('#formulario');
 
-window.addEventListener('load', () => {
-    document.addEventListener('submit', buscarClima)
-});
+window.addEventListener('load', () =>{
+    formulario.addEventListener('submit',cargardatos)
+})
 
-function buscarClima(e){
+function cargardatos(e){
     e.preventDefault();
 
-    //validar
+
+    //validamos
     const ciudad = document.querySelector('#ciudad').value;
     const pais = document.querySelector('#pais').value;
 
     if(ciudad === '' || pais === ''){
-        mostrarMensaje('Ambos campos son obligatorios')
+        console.log("todos los campos son obligatorios");
+        mostrarMensaje("todos los campos son obligatorios");
         return;
     }
-    console.log(ciudad);
-    console.log(pais);
-    //consultar la api
-    consultarAPI(ciudad,pais);
+
+    
+    //traemos los datos
+    consultarAPI(ciudad,pais)
 }
 
 function mostrarMensaje(mensaje){
-    const alerta = document.querySelector('.bg-red-100')
+    const alerta = document.querySelector(".bg-red-100")
+
     if(!alerta){
 
-    const alerta = document.createElement('div');
-        
-    alerta.classList.add('bg-red-100','border-red-400','text-red-700','px-4','py-3','rounded','max-w-md', 'mx-auto','mt-6', 'text-center');
+    const mensajeerror = document.createElement('div');
 
-    alerta.innerHTML=`
-        <strong class="font-bold">Error!</strong>
-        <span class= "block">${mensaje}</span>
-        `;
+    mensajeerror.classList.add('bg-red-100','border-red-400','text-red-700','px-4','py-3',
+    'rounded','max-w-md','mx-auto','mt-6','text-center');
 
-        container.appendChild(alerta);
-        setTimeout(() => {
-            alerta.remove();
-        }, 3000);
-    }
+    mensajeerror.innerHTML = `
+    <strong class="font-bold">Error!</strong>
+    <span class="block">${mensaje}</span>
+    `;
+    formulario.appendChild(mensajeerror);
+    setTimeout(() => {
+        formulario.removeChild(mensajeerror)
+    }, 4000);
+}
 }
 
 function consultarAPI(ciudad,pais){
-    const appId = 'a0804d42ff42b6337c35ea51e07e600f';
 
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${ciudad},${pais}&appid=${appId}`
+    const apikey = `a0804d42ff42b6337c35ea51e07e600f`;
 
-    Spinner();
-    fetch(url).then( resultado => resultado.json())
-    .then( datos => {
-        console.log(datos);
-        limpiarHTML();
-        // console.log(datos)
-        if(datos.cod === '404'){
-            mostrarMensaje('Ciudad no encontrada')
-            return;
-        }
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${ciudad},${pais}&appid=${apikey}`
 
-        // mostrar los datos en el html
-        
-        mostrarClima(datos)
-    })
+    mostrarSpinner();
+    debugger;
+    fetch(url)
+        .then(respuesta => respuesta.json())
+        .then(resultado => {
+            limpiarHTML()
+            console.log(resultado);
+            if(resultado.cod === "404"){
+                mostrarMensaje('Ciudad no encontrada');
+                return;
+            }
+            
+            mostrarClima(resultado)
+        })
 }
 
-function mostrarClima(datos){
-    const {name,main : {temp, temp_max,temp_min}} = datos
+function mostrarClima(clima){
+    // const bandera = document.querySelector('.centigrados')
+    // if(!bandera){
+    
+    
+    const {name,main: {temp,temp_max,temp_min}, } = clima;
     const centigrados = kelvinAcentigrados(temp);
-    const max = kelvinAcentigrados(temp_max);
-    const min = kelvinAcentigrados(temp_min);
+    const tempmax = kelvinAcentigrados(temp_max);
+    const tempmin = kelvinAcentigrados(temp_min);
+    // const centigrados = Math.round(temp - 273.15);
+    // const tempMax =Math.round( temp_max - 273.15);
+    // const tempMin =Math.round (temp_min - 273.15);
+    
+    const ciudad =document.createElement('p');
+    ciudad.classList.add('text-bold','text-xl')
+    ciudad.textContent = `${name}`
 
-    const nombre = document.createElement('p');
-    nombre.textContent = `clima en ${name}`;
-    nombre.classList.add('font-bold','text-2xl');
+    const rain1h = clima.rain['1h'];
+    const prob = rain1h * 100;
+    const lluvia1h = document.createElement('p');
+    lluvia1h.classList.add('text-bold','text-xl')
+    lluvia1h.textContent = `Probabilidad de lluvia en la proxima hora: ${prob}% `;
 
     const actual = document.createElement('p');
-    actual.innerHTML = `
-        ${centigrados} &#8451;`;
-    actual.classList.add('font-bold','text-6xl')
+    actual.innerHTML = `${centigrados} &#8451;`;
+    actual.classList.add('text-bold','text-6xl','centigrados');
 
-    const tempMax = document.createElement('p');
-    tempMax.innerHTML = `temperatura máxima ${max} &#8451; `;
-    tempMax.classList.add('text-xl')
+    const max = document.createElement('p')
+    max.innerHTML = `${tempmax} &#8451; max`;
+    max.classList.add('text-bold','text-xl')
 
-    const tempMin = document.createElement('p');
-    tempMin.innerHTML = `temperatura minima ${min} &#8451; `;
-    tempMin.classList.add('text-xl')
+    const min = document.createElement('p');
+    min.innerHTML = `${tempmin} &#8451; min `;
+    min.classList.add('text-bold','text-xl');
 
     const resultadoDiv = document.createElement('div');
-    resultadoDiv.classList.add('text-center','text-white')
-    resultadoDiv.appendChild(nombre);
-    resultadoDiv.appendChild(actual);
-    resultadoDiv.appendChild(tempMax);
-    resultadoDiv.appendChild(tempMin);
+    resultadoDiv.classList.add('text-center','text-white');
 
+    resultadoDiv.appendChild(ciudad);
+    resultadoDiv.appendChild(lluvia1h);
+    resultadoDiv.appendChild(actual);
+    resultadoDiv.appendChild(max);
+    resultadoDiv.appendChild(min);
     resultado.appendChild(resultadoDiv);
+    // }
+    
 }
 
-// La función se puede hacer así tranquilamente, pero se puede hacer aún más compacto
+//podemos convertir esta funcion a funcion helper, que es una que hace una sóla cosa
 // function kelvinAcentigrados(temperatura){
-//     return parseInt(temperatura - 273.15);
+// return parseInt(temperatura - 273.15);
 // }
 
-// la función helper sería así y más rapida
-const kelvinAcentigrados = grados => parseInt(grados - 273.15);
+const kelvinAcentigrados = temperatura => parseInt(temperatura - 273.15);
+
 
 function limpiarHTML(){
     while(resultado.firstChild){
@@ -113,12 +130,12 @@ function limpiarHTML(){
     }
 }
 
-function Spinner(){
+function mostrarSpinner(){
     limpiarHTML();
-    const divSpinner = document.createElement('div')
+    const divSpinner = document.createElement('div');
     divSpinner.classList.add('sk-fading-circle');
+    
     divSpinner.innerHTML = `
-        
     <div class="sk-circle1 sk-circle"></div>
     <div class="sk-circle2 sk-circle"></div>
     <div class="sk-circle3 sk-circle"></div>
@@ -131,7 +148,7 @@ function Spinner(){
     <div class="sk-circle10 sk-circle"></div>
     <div class="sk-circle11 sk-circle"></div>
     <div class="sk-circle12 sk-circle"></div>
-        
     `;
+
     resultado.appendChild(divSpinner);
 }
