@@ -47,6 +47,10 @@ function mostrarMensaje(mensaje){
 }
 
 function consultarAPI(ciudad,pais){
+<<<<<<< HEAD
+=======
+    const appId = '';
+>>>>>>> 455549aa3d2b8f1a1e3b2f9b71d6d79d1a4f6010
 
     const apikey = `a0804d42ff42b6337c35ea51e07e600f`;
 
